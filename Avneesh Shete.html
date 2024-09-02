@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Location Tracking</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([0, 0], 13); // Center the map on [0, 0] initially
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Marker and polyline for tracking the user's path
+        var currentLocationMarker;
+        var pathCoordinates = [];
+        var polyline = L.polyline(pathCoordinates, {color: 'blue'}).addTo(map);
+
+        // Function to update the map with the current location
+        function updateMap(position) {
+            var lat = position.coords.latitude;
+            var lng = position.coords.longitude;
+
+            // Add or update the current location marker
+            if (!currentLocationMarker) {
+                currentLocationMarker = L.marker([lat, lng]).addTo(map);
+            } else {
+                currentLocationMarker.setLatLng([lat, lng]);
+            }
+
+            // Add the current location to the path and update the polyline
+            pathCoordinates.push([lat, lng]);
+            polyline.setLatLngs(pathCoordinates);
+
+            // Center the map on the current location
+            map.setView([lat, lng]);
+        }
+
+        // Error handler for geolocation
+        function handleLocationError(error) {
+            console.error("Error retrieving location: ", error.message);
+        }
+
+        // Options for geolocation
+        var geoOptions = {
+            enableHighAccuracy: true,
+            maximumAge: 30000,
+            timeout: 27000
+        };
+
+        // Watch the user's location and update the map
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(updateMap, handleLocationError, geoOptions);
+        } else {
+            alert("Geolocation is not supported by your browser.");
+        }
+    </script>
+</body>
+</html>
